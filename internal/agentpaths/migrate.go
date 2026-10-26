@@ -133,6 +133,11 @@ func migrationItems() ([]MigrationItem, error) {
 			return fmt.Errorf("stat legacy item %q: %w", source, err)
 		}
 		destination := filepath.Join(root, name)
+		if filepath.Clean(source) == filepath.Clean(destination) {
+			// AGENT_DECK_HOME makes the legacy and XDG roots one directory:
+			// the item is already where it belongs.
+			return nil
+		}
 		key := string(category) + "\x00" + name
 		if _, ok := seen[key]; ok {
 			return nil

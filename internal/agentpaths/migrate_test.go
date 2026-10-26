@@ -14,6 +14,7 @@ func setupMigrationHome(t *testing.T) (home, legacy string) {
 	t.Setenv("XDG_CONFIG_HOME", "")
 	t.Setenv("XDG_DATA_HOME", "")
 	t.Setenv("XDG_CACHE_HOME", "")
+	t.Setenv(HomeEnv, "")
 	legacy = filepath.Join(home, ".agent-deck")
 	return home, legacy
 }

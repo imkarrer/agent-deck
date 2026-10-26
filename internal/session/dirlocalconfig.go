@@ -142,6 +142,11 @@ func DiscoverDirLocalConfigPaths(targetDir string) ([]string, error) {
 	if legacyDir, err := agentpaths.LegacyDir(); err == nil {
 		addGlobal(filepath.Join(legacyDir, UserConfigFileName))
 	}
+	// Under AGENT_DECK_HOME, LegacyDir is that home, but ~/.agent-deck is
+	// still the other deck's global config, not a dir-local one.
+	if homeLegacyDir, err := agentpaths.HomeLegacyDir(); err == nil {
+		addGlobal(filepath.Join(homeLegacyDir, UserConfigFileName))
+	}
 	isGlobal := func(info os.FileInfo) bool {
 		return slices.ContainsFunc(globalFiles, func(g os.FileInfo) bool { return os.SameFile(g, info) })
 	}

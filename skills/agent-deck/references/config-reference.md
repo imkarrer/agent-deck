@@ -1803,11 +1803,14 @@ description = "GitHub access"
 | Variable | Purpose |
 |----------|---------|
 | `AGENTDECK_PROFILE` | Override default profile |
+| `AGENT_DECK_HOME` | One absolute directory for all of agent-deck's config, data and cache (flat, like the legacy `~/.agent-deck`); the XDG dirs and `~/.agent-deck` are then never read. Gives a second, fully separate deck on one machine; give that deck its own `[tmux].socket_name` too |
 | `CLAUDE_CONFIG_DIR` | Override Claude config dir |
 | `AGENTDECK_DEBUG=1` | Enable debug logging |
 | `AGENTDECK_IDENTITY_FILE` | Set in every spawned session: path of the model-readable identity block for that session (see `[launch] inject_identity`) |
 
 ## Data Locations
+
+With `AGENT_DECK_HOME` set to an absolute path, that directory is the only root: `config.toml`, `profiles/`, `hooks/`, logs and caches all live directly in it, no XDG dir or `~/.agent-deck` is consulted, the table below does not apply and `migrate-paths` has nothing to do.
 
 Session state lives in one **profile store** per profile: `profiles/<profile>/state.db` under a single data root, either the XDG data dir (`$XDG_DATA_HOME/agent-deck`, default `~/.local/share/agent-deck`) or the legacy `~/.agent-deck`. Which root is active is decided per process by this table, never by a bare directory stat or by which copy has more rows:
 

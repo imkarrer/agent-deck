@@ -4852,6 +4852,7 @@ func printHelp() {
 	fmt.Println()
 	fmt.Println("Environment Variables:")
 	fmt.Println("  AGENTDECK_PROFILE    Default profile to use")
+	fmt.Println("  AGENT_DECK_HOME      One directory for all config, data and cache (separate deck)")
 	fmt.Println("  AGENTDECK_COLOR      Color mode: truecolor, 256, 16, none")
 	fmt.Println()
 	fmt.Println("Configuration:")

@@ -50,6 +50,11 @@ func runMigratePaths(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 
+	if home, ok := agentpaths.HomeOverride(); ok {
+		fmt.Fprintf(stdout, "%s is set: config, data and cache all live in %s; nothing to migrate\n", agentpaths.HomeEnv, home)
+		return 0
+	}
+
 	legacyDir, err := agentpaths.LegacyDir()
 	if err != nil {
 		fmt.Fprintf(stderr, "failed to resolve legacy directory: %v\n", err)

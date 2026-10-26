@@ -230,8 +230,12 @@ func selectStoreRoot(countAll bool) (StoreRootSelection, error) {
 	if err != nil {
 		return StoreRootSelection{}, err
 	}
-	legacy, err := inspectStoreRoot(storeRootLegacyLabel, legacyDir, countAll)
-	if err != nil {
+	var legacy StoreRootInfo
+	if filepath.Clean(legacyDir) == filepath.Clean(xdgDir) {
+		// AGENT_DECK_HOME makes both candidates one directory. There is one
+		// root, so it is never divergent: report the legacy side as absent.
+		legacy = StoreRootInfo{Kind: storeRootLegacyLabel, Path: legacyDir, Profiles: map[string]int{}, Counted: countAll}
+	} else if legacy, err = inspectStoreRoot(storeRootLegacyLabel, legacyDir, countAll); err != nil {
 		return StoreRootSelection{}, err
 	}
 

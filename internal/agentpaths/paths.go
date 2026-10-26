@@ -17,6 +17,39 @@ import (
 
 const AppDirName = "agent-deck"
 
+// HomeEnv names the single-directory override. When it holds an absolute
+// path, that directory is agent-deck's config, data and cache dir and its
+// legacy dir: every resolver in this package returns it, and neither the XDG
+// base dirs nor ~/.agent-deck are consulted. It lets two decks on one machine
+// keep fully separate state without overriding XDG_*, which agent-deck's tmux
+// server would hand to every pane. The layout inside it is the flat legacy
+// layout (config.toml, profiles/, hooks/, ... side by side); the file names
+// of the three categories never collide (see migrationItems).
+const HomeEnv = "AGENT_DECK_HOME"
+
+// HomeOverride returns the cleaned $AGENT_DECK_HOME and true when it is set
+// to an absolute path. An empty or relative value is ignored, the same way
+// xdgDir ignores a relative $XDG_*_HOME.
+func HomeOverride() (string, bool) {
+	value := strings.TrimSpace(os.Getenv(HomeEnv))
+	if value == "" || !filepath.IsAbs(value) {
+		return "", false
+	}
+	return filepath.Clean(value), true
+}
+
+// homeOverrideDir is HomeOverride with the test-time real-home guard applied.
+func homeOverrideDir() (string, bool, error) {
+	dir, ok := HomeOverride()
+	if !ok {
+		return "", false, nil
+	}
+	if err := ensureSafeForTest(dir); err != nil {
+		return "", true, err
+	}
+	return dir, true, nil
+}
+
 // S4 data-loss safeguard (2026-06-04 incident).
 //
 // Path resolution uses $HOME and XDG_* env vars. Under go test, a package that
@@ -161,6 +194,17 @@ func ensureSafeForTest(resolved string) error {
 }
 
 func LegacyDir() (string, error) {
+	if dir, ok, err := homeOverrideDir(); ok {
+		return dir, err
+	}
+	return HomeLegacyDir()
+}
+
+// HomeLegacyDir is ~/.agent-deck whatever AGENT_DECK_HOME says: the legacy
+// root of the deck that runs without the override. Only for telling that
+// deck's files apart (dir-local config discovery); resolve paths with
+// LegacyDir.
+func HomeLegacyDir() (string, error) {
 	home, err := homeDir()
 	if err != nil {
 		return "", err
@@ -173,6 +217,9 @@ func LegacyDir() (string, error) {
 }
 
 func xdgDir(envName string, fallbackParts ...string) (string, error) {
+	if dir, ok, err := homeOverrideDir(); ok {
+		return dir, err
+	}
 	if value := strings.TrimSpace(os.Getenv(envName)); value != "" {
 		if filepath.IsAbs(value) {
 			dir := filepath.Join(value, AppDirName)

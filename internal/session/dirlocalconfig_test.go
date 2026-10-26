@@ -142,6 +142,27 @@ func TestDiscoverDirLocalConfigPaths_StopsAtHomeAndExcludesGlobal(t *testing.T) 
 	}
 }
 
+// Under AGENT_DECK_HOME the global config is <AGENT_DECK_HOME>/config.toml,
+// but $HOME/.agent-deck/config.toml is still the other deck's global config,
+// never a dir-local one for every project under $HOME.
+func TestDiscoverDirLocalConfigPaths_AgentDeckHomeStillExcludesHomeLegacyConfig(t *testing.T) {
+	home := setupDirLocalHome(t)
+	t.Setenv("AGENT_DECK_HOME", filepath.Join(t.TempDir(), "deck"))
+	globalPath := writeDirLocalConfig(t, home, "[worktree]\ndefault_location = \"sibling\"\n")
+
+	target := filepath.Join(home, "projects", "example", "main")
+	if err := os.MkdirAll(target, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	paths, err := DiscoverDirLocalConfigPaths(target)
+	if err != nil {
+		t.Fatalf("DiscoverDirLocalConfigPaths: %v", err)
+	}
+	if len(paths) != 0 {
+		t.Fatalf("paths = %v, want none: %s belongs to the deck outside AGENT_DECK_HOME", paths, globalPath)
+	}
+}
+
 func TestResolveWorktreeSettingsForDir_Precedence(t *testing.T) {
 	home := setupDirLocalHome(t)
 

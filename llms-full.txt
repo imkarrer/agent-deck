@@ -1279,6 +1279,7 @@ description = "GitHub access"
 | Variable | Purpose |
 |----------|---------|
 | `AGENTDECK_PROFILE` | Override default profile |
+| `AGENT_DECK_HOME` | One absolute directory for all of agent-deck's config, data and cache (flat, like the legacy `~/.agent-deck`); the XDG dirs and `~/.agent-deck` are then never read. Gives a second, fully separate deck on one machine; give that deck its own `[tmux].socket_name` too |
 | `CLAUDE_CONFIG_DIR` | Override Claude config dir |
 | `AGENTDECK_DEBUG=1` | Enable debug logging |
 

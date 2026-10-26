@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/asheshgoplani/agent-deck/internal/agentpaths"
 	"github.com/asheshgoplani/agent-deck/internal/sandboxguard"
 )
 
@@ -70,6 +71,7 @@ var ToolConfigDirEnvs = sandboxguard.ToolConfigDirEnvs
 //   - XDG_DATA_HOME    -> ""  (cleared; resolves under $HOME/.local/share)
 //   - XDG_CACHE_HOME   -> ""  (cleared; resolves under $HOME/.cache)
 //   - XDG_STATE_HOME   -> ""  (cleared; resolves under $HOME/.local/state)
+//   - AGENT_DECK_HOME  -> ""  (cleared; it beats HOME and every XDG dir)
 //   - CLAUDE_CONFIG_DIR, CODEX_HOME, ... -> "" (cleared; see ToolConfigDirEnvs)
 //   - AGENTDECK_PROFILE -> _test
 //   - AGENT_DECK_TEST_HOME_ISOLATED -> 1  (marker for guard/runtime checks)
@@ -100,6 +102,7 @@ func IsolateHome() func() {
 		"XDG_DATA_HOME",
 		"XDG_CACHE_HOME",
 		"XDG_STATE_HOME",
+		agentpaths.HomeEnv,
 		"AGENTDECK_PROFILE",
 		HomeIsolationMarkerEnv,
 	}
@@ -128,6 +131,9 @@ func IsolateHome() func() {
 	_ = os.Unsetenv("XDG_DATA_HOME")
 	_ = os.Unsetenv("XDG_CACHE_HOME")
 	_ = os.Unsetenv("XDG_STATE_HOME")
+	// AGENT_DECK_HOME wins over HOME and XDG_* in agentpaths, and a test run
+	// from inside a deck that sets it would otherwise write into that deck.
+	_ = os.Unsetenv(agentpaths.HomeEnv)
 	for _, k := range ToolConfigDirEnvs {
 		_ = os.Unsetenv(k)
 	}

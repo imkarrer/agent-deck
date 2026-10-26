@@ -55,3 +55,20 @@ func TestIsolateHomeClearsDSHHome(t *testing.T) {
 		t.Fatalf("after IsolateHome DSH_HOME=%q is still set", v)
 	}
 }
+
+// TestIsolateHomeClearsAgentDeckHome: AGENT_DECK_HOME beats HOME and every
+// XDG dir in agentpaths, so a test run started from inside a deck that sets it
+// would write into that deck's live state until IsolateHome cleared it.
+func TestIsolateHomeClearsAgentDeckHome(t *testing.T) {
+	live := filepath.Join(t.TempDir(), "live-deck")
+	t.Setenv("AGENT_DECK_HOME", live)
+	cleanup := IsolateHome()
+	v, ok := os.LookupEnv("AGENT_DECK_HOME")
+	cleanup()
+	if ok {
+		t.Fatalf("after IsolateHome AGENT_DECK_HOME=%q is still set", v)
+	}
+	if got := os.Getenv("AGENT_DECK_HOME"); got != live {
+		t.Fatalf("cleanup did not restore AGENT_DECK_HOME: got %q, want %q", got, live)
+	}
+}

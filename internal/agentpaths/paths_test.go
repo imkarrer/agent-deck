@@ -345,6 +345,7 @@ func setupHome(t *testing.T) string {
 
 	home := t.TempDir()
 	t.Setenv("HOME", home)
+	t.Setenv(HomeEnv, "")
 	return home
 }
 
